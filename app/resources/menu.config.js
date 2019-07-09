@@ -2,7 +2,11 @@ const em = require('./emoticons.config')
 
 const menuAdmin =(prefix,from)=>{
     return {
+        type:'Edit',
+        from:prefix,
+        id:from.id,
         parse_mode:'HTML',
+        message:'Pilih Menu Dibawah ini',
         reply_markup: {
             inline_keyboard:[
                 [ 
@@ -11,7 +15,14 @@ const menuAdmin =(prefix,from)=>{
                 ],
                 [ 
                     {text: `${em.chart} Monitoring`, callback_data: prefix+'-onMonitoringClicked-'+from.id+'@'+from.first_name}
+                ],
+                [
+                    {text: `${em.save} Save to Excel`, callback_data: prefix+'-onSave-'+from.id+'@'+from.first_name}
+                ],
+                [
+                    {text: `${em.close} Close`, callback_data: prefix+'-onClose-'+from.id+'@'+from.first_name}
                 ]
+
             ]
         },
         deleteLast:true
@@ -20,21 +31,30 @@ const menuAdmin =(prefix,from)=>{
 
 const menuUser = (prefix,from)=>{
     return {
+        type:'Edit',
+        from:prefix,
         parse_mode:'HTML',
+        message:'Pilih Menu Dibawah ini',
         reply_markup: {
             inline_keyboard:[
                 [ 
                     {text: `${em.project} Projects`, callback_data: prefix+'-onProjectsClicked-'+from.id+'@'+from.first_name},
                     {text: `${em.tasks} Tasks`,callback_data:prefix+'-onTasksClicked-'+from.id+'@'+from.first_name}
-                ] 
+                ],
+                [
+                    {text: `${em.close} Close`, callback_data: prefix+'-onClose-'+from.id+'@'+from.first_name}
+                ]
             ]
         },
-        deleteLast:true
+        
     }
 }
 
 const menuProjectsAdmin = (from,prefix)=>{
     return {
+        type:'Edit',
+        id:from.id,
+        from:prefix,
         message:'Silahkan pilih menu dibawah ini',
         options:{
             parse_mode:'HTML',
@@ -56,17 +76,20 @@ const menuProjectsAdmin = (from,prefix)=>{
                     ],
                     [
                         {text: `${em.back} Back`,callback_data:prefix+
-                        '-onBackPressed-'+from.id+'@'+from.first_name}
-                    ]                    
+                        '-onBackPressed-'+from.id+'@'+from.first_name},
+                        {text: `${em.close} Close`, callback_data: prefix+'-onClose-'+from.id+'@'+from.first_name}
+                    ]
                 ]
             }
         },
-        deleteLast:true
+        // deleteLast:true
     }
 }
 
 const menuProjectsUser = (from,prefix)=>{
     return {
+        type:'Edit',
+        from:prefix,
         message:'Silahkan pilih menu dibawah ini',
         options:{
             parse_mode:'HTML',
@@ -78,17 +101,20 @@ const menuProjectsUser = (from,prefix)=>{
                     ],
                     [
                         {text: `${em.back} Back`,callback_data:prefix+
-                        '-onBackPressed-'+from.id+'@'+from.first_name}
-                    ]                    
+                        '-onBackPressed-'+from.id+'@'+from.first_name},
+                        {text: `${em.close} Close`, callback_data: prefix+'-onClose-'+from.id+'@'+from.first_name}
+                    ]
                 ]
             }
         },
-        deleteLast:true
+        // deleteLast:true
     }
 }
 
 const menuTasksUser = (prefix,from)=>{
     return {
+        type:'Edit',
+        from:prefix,
         message:'Silahkan pilih menu dibawah ini',
         options:{
             parse_mode:'HTML',
@@ -119,17 +145,20 @@ const menuTasksUser = (prefix,from)=>{
                     ],
                     [
                         {text: `${em.back} Back`,callback_data:prefix+
-                        '-onBackPressed-'+from.id+'@'+from.first_name}
+                        '-onBackPressed-'+from.id+'@'+from.first_name},
+                        {text: `${em.close} Close`, callback_data: prefix+'-onClose-'+from.id+'@'+from.first_name}
                     ]                    
                 ]
             }
         },
-        deleteLast:true
+        // deleteLast:true
     }
 }
 
 const menuTasksAdmin = (prefix,from)=>{
     return {
+        type:'Edit',
+        from:prefix,
         message:'Silahkan pilih menu dibawah ini',
         options:{
             parse_mode:'HTML',
@@ -167,12 +196,13 @@ const menuTasksAdmin = (prefix,from)=>{
                     ],
                     [
                         {text: `${em.back} Back`,callback_data:prefix+
-                        '-onBackPressed-'+from.id+'@'+from.first_name}
-                    ]                    
+                        '-onBackPressed-'+from.id+'@'+from.first_name},
+                        {text: `${em.close} Close`, callback_data: prefix+'-onClose-'+from.id+'@'+from.first_name}
+                    ],                 
                 ]
             }
         },
-        deleteLast:true
+        // deleteLast:true
     }
 }
 

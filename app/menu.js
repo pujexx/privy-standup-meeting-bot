@@ -1,4 +1,4 @@
-const {isAdmin} = require("./DataTransaction")
+const {isAdmin,exportToExcel} = require("./DataTransaction")
 const {
         menuAdmin,
         menuUser,
@@ -15,72 +15,131 @@ class Menu extends App{
         super()
         this.register([
             //Basic Section
-            this.onMain,
-            this.onBackPressed,
-            
+            this.onMain.name,
+            this.onBackPressed.name,
+            this.onSave.name,
+            this.onClose.name,
+
             //Task Section
-            this.onTasksClicked,
-            this.onReportTasks,
-            this.onAddTasks,
-            this.onListTasks,
-            this.onOfferTasks,
-            this.onAssignTasks,
+            this.onTasksClicked.name,
+            this.onReportTasks.name,
+            this.onAddTasks.name,
+            this.onListTasks.name,
+            this.onOfferTasks.name,
+            this.onAssignTasks.name,
             
             //Project Section
-            this.onProjectsClicked,
-            this.onAddProjects,
-            this.onEditProjects,
-            this.onDeleteProjects,
-            this.onListProjects,
+            this.onProjectsClicked.name,
+            this.onAddProjects.name,
+            this.onEditProjects.name,
+            this.onDeleteProjects.name,
+            this.onListProjects.name,
             
             // Add new section here
 
         ])
 
+
+
         // Define Class variable here
         this.prefix = `${Menu.name}@${userID}`
         this.isAdmin={}
         this.state=[]
+        this.visited=new Set([])
         this.bot=bot
+        this.userID= userID
         
     }
+
+    /**
+     * response = {
+     *     type : type case (ex."Edit") (required!)
+     *     from : prefix,
+     *     message: message
+     *     options: inlineKeyboardOption
+     *     deleteLast : boolean
+     *     agrs : any
+     * }
+     */
 
 
     //----------------BASIC SECTION-----------------------------------------
-    async onMain({from,chat}){
-        const load = result=>{
-        this.isAdmin = result
+
+    async onMain({from,chat},first = false){
+        this.message = ""
+        const load = result => {
+            this.isAdmin = result
+        }
+
+        await isAdmin(from.id).then(load.bind(this))
+
         this.from = from
+
         let opts = this.getMessageOptionOnMenu(from.id)
         let greetings = this.generateGreetings()
-        
-        
-        this.bot.sendMessage(chat.id,   
-            `Selamat ${greetings} ${from.first_name},\nSilahkan gunakan tombol dibawah ini.`,
-            opts)
-            
+        this.visited.clear()
+        this.onVisit(this.onMain.name,{from,chat})
+        return {
+            type:  first ? "Send": "Edit",
+            id:this.userID,
+            message: `Selamat ${greetings} ${from.first_name},\nSilahkan gunakan tombol dibawah ini.`,
+            options: opts 
         }
-        await isAdmin(from.id).then(load.bind(this))
-        
-        this.state.push({func:this.onMain.name,args:{from,chat}})
         
     }
     
-    onBackPressed(){
-        this.state.pop()
-        let {func,args} = this.state.pop()
+    onClose(){
+        return {
+            destroy:true,
+            id:this.userID,
+            type:"Delete"
+        }
+    }
+    
+    async onSave(){
+        try {
+           await exportToExcel()           
+           this.onVisit(this.onVisit.name) 
+        } catch (error) {
+            console.log(error)
+            return {
+                type:'Edit',
+                id:this.userID,
+                message:error.message,
+            }
+        }
+        return {
+            type:'Send',
+            id:this.userID,
+            message:'Success Export to Excel'
+        } 
+    }
 
-        this[func].call(this,args)
-        return {deleteLast:true}
+    async onBackPressed(){
+        let {func:tmp} = this.state.pop()
+        this.visited.delete(tmp)
+        console.log(this.visited)
+
+        let {func,args} = this.state.pop()
+        
+        const response = await this[func].call(this,args)
+        return response
+        
     }
         
+    onVisit(name,args){
+        if(!(this.visited.has(name))){
+            this.visited.add(name)
+            this.state.push({func:name,args:args})        
+        }
+    }
+
     //-----------------END SECTION----------------------------
 
 
     //-----------------TASK SECTION---------------------------
     onTasksClicked(){
-        this.state.push({func:this.onTasksClicked.name,args:{}})
-
+        this.onVisit('onTasksClicked')
         if(this.isAdmin){
             return menuTasksAdmin(this.prefix,this.from)
         }else{
@@ -89,52 +148,56 @@ class Menu extends App{
     }
 
     onAddTasks(){
-        this.state.push({func:this.onAddTasks.name,args:{}})
-
+        this.onVisit('onTasksClicked')
         return {
             //Objects to trigger taufiq's function
             
             //Testing
-            message:'addTask'
+            type:'Auto',
+            message:'/addTasks'
         }
     }
 
     onListTasks(){
-        this.state.push({func:this.onListTasks.name,args:{}})
-        
+        console.log('visited')
+        this.onVisit('onTasksClicked')
         return {
             //Objects to trigger taufiq's function
 
             //Testing
-            message:'ListTask',
+            type:'Auto',
+            message:'/showTasks',
         }
     }
 
     onReportTasks(){
-        this.state.push({func:this.onReportTasks.name,args:{}})
+        this.onVisit('onTasksClicked')
         return {
 
             //Testing
-            message:'ReportTask'
+            type:'Auto',
+            message:'/report'
         }
     }
 
     onOfferTasks(){
-        this.state.push({func:this.onOfferTasks.name,args:{}})
+        this.onVisit('onTasksClicked')
         return {
             //Object to trigger Jose's function
 
             //Testing
-            message:'OfferTask',
+            type:'Auto',
+            message:'/offer',
         }
     }
 
     onAssignTasks(){
-        this.state.push({func:this.onAssignTasks.name,args:{}})
+        this.onVisit('onTasksClicked')
         return {
             //Objects to trigger taufiq's function
             //Testing
-            message:'assignTask',
+            type:'Auto',
+            message:'/assignTasks',
         }
     }
 
@@ -143,8 +206,7 @@ class Menu extends App{
 
     //----------------PROJECT SECTION------------------------
     onProjectsClicked(){
-        this.state.push({func:this.onProjectsClicked.name,args:{}})
-
+        this.onVisit('onProjectsClicked')
         if(this.isAdmin){
             return menuProjectsAdmin(this.from,this.prefix)
         }else{
@@ -153,38 +215,42 @@ class Menu extends App{
     }
 
     onAddProjects(){
-        this.state.push({func:this.onAddProjects.name,args:{}})
+        this.onVisit('onAddProjects')
         return {
             //Objects to trigger taufiq's function
             //Testing
-            message:'addProject',
+            type:'Auto',
+            message:'/addProject',
         }
     }
 
     onEditProjects(){
-        this.state.push({func:this.onEditProjects.name,args:{}})
+        this.onVisit('onEditProjects')
         return {
             //Objects to trigger taufiq's function
             //Testing
-            message:'editProject',
+            type:'Auto',
+            message:'/editProject',
         }
     }
 
     onDeleteProjects(){
-        this.state.push({func:this.onDeleteProjects.name,args:{}})
+        this.onVisit('onDeleteProjects')
         return {
             //Objects to trigger taufiq's function
             //Testing
-            message:'deleteProject',
+            type:'Auto',
+            message:'/deleteProject',
         }
     }
 
     onListProjects(){
-        this.state.push({func:this.onListProjects.name,args:{}})
+        this.onVisit('onListProjects')
         return {
             //Objects to trigger taufiq's function
             //Testing
-            message:'listProject',
+            type:'Auto',
+            message:'/listProject',
         }
     }
 
